@@ -2,6 +2,7 @@ from typing import List, Tuple, Generator
 from dataclasses import dataclass
 
 class Record:
+    """Record class for MSP database"""
     def __init__(
             self,
             name: str = None,
@@ -34,13 +35,19 @@ class Record:
     
     def __str__(self):
         return f'Record:\n{self.name}\n{self.precursor_mz}\n{self.precursor_type}\n{self.smiles}\n{self.inchi}\n{self.formula}\n{self.retention_time}\n{self.ccs}\n{self.ionmode}\n{self.compound_class}\n{self.comment}\n{self.n_peaks}\n{self.peaks}'
-
+    
 
 class MSPdb:
+    """MSP database class"""
     def __init__(self):
         self.records: List[Record] = []
     
-    def load_file(self, filename: str):
+    def load_file(self, filename: str) -> None:
+        """Read a MSP database file and add records to class
+
+        Args:
+            filename (str): path to MSP database file
+        """
         f = open(filename, 'r')
         items = f.read().strip().split('\n\n')
         for item in items: # iterate over items in database 
@@ -83,6 +90,7 @@ class MSPdb:
                 f.close()
         
     def summary(self):
+        """Print a summary of the MSP database"""
         print(f"""
         MSP Database Summary
         --------------------------------
@@ -101,21 +109,57 @@ class MSPdb:
         --------------------------------""")
     
     def filter_class(self, compound_class: str, records: List[Record] = None) -> Generator[Record, None, None]:
+        """Filter compound class by exact match. Matching records are yielded.
+
+        Args:
+            compound_class (str): class to filter on.
+            records (List[Record], optional): A list of records to filter. If no list is supplied, the internal database will be filtered and returned. Defaults to None.
+
+        Yields:
+            Generator[Record, None, None]: Records passing the filter.
+        """
         for record in self.records if not records else records:
             if record.compound_class == compound_class:
                 yield record
 
     def filter_ionmode(self, ionmode: str, records: List[Record] = None) -> Generator[Record, None, None]:
+        """Filter ion mode by exact match. Matching records are yielded.
+
+        Args:
+            ionmode (str): ionmode to filter
+            records (List[Record], optional): A list of records to filter. If no list is supplied, the internal database will be filtered and returned. Defaults to None.
+
+        Yields:
+            Generator[Record, None, None]: Records passing the filter.
+        """
         for record in self.records if not records else records:
             if record.ionmode == ionmode:
                 yield record
 
     def ffilter_name(self, name: str, records: List[Record] = None) -> Generator[Record, None, None]:
+        """Fuzzy filter name by substring. Matching records are yielded.
+
+        Args:
+            name (str): substring to filter on.
+            records (List[Record], optional): A list of records to filter. If no list is supplied, the internal database will be filtered and returned. Defaults to None.
+
+        Yields:
+            Generator[Record, None, None]: Records passing the filter.
+        """
         for record in self.records if not records else records:
             if name in record.name:
                 yield record
     
     def filter_precursor_type(self, precursor_type: str, records: List[Record] = None) -> Generator[Record, None, None]:
+        """filter records on precursor type by exact match. Matching records are yielded.
+
+        Args:
+            precursor_type (str): Precursor type to filter on.
+            records (List[Record], optional): A list of records to filter. If no list is supplied, the internal database will be filtered and returned. Defaults to None.
+
+        Yields:
+            Generator[Record, None, None]: Records passing the filter.
+        """
         for record in self.records if not records else records:
             if record.precursor_type == precursor_type:
                 yield record
