@@ -11,7 +11,7 @@ class Record:
         precursor_mz: float = None,
         precursor_type: str = None,
         smiles: str = None,
-        inchi: str = None,
+        inchikey: str = None,
         formula: str = None,
         retention_time: float = None,
         ccs: float = None,
@@ -25,7 +25,7 @@ class Record:
         self.precursor_mz = precursor_mz
         self.precursor_type = precursor_type
         self.smiles = smiles
-        self.inchi = inchi
+        self.inchikey = inchikey
         self.formula = formula
         self.retention_time = retention_time
         self.ccs = ccs
@@ -36,7 +36,7 @@ class Record:
         self.peaks = peaks if peaks else []
 
     def __str__(self):
-        return f"Record:\n{self.name}\n{self.precursor_mz}\n{self.precursor_type}\n{self.smiles}\n{self.inchi}\n{self.formula}\n{self.retention_time}\n{self.ccs}\n{self.ionmode}\n{self.compound_class}\n{self.comment}\n{self.n_peaks}\n{self.peaks}"
+        return f"Record:\n{self.name}\n{self.precursor_mz}\n{self.precursor_type}\n{self.smiles}\n{self.inchikey}\n{self.formula}\n{self.retention_time}\n{self.ccs}\n{self.ionmode}\n{self.compound_class}\n{self.comment}\n{self.n_peaks}\n{self.peaks}"
 
 
 class MSPdb:
@@ -76,7 +76,7 @@ class MSPdb:
                     precursor_mz=float(rec.get("PRECURSORMZ")),
                     precursor_type=rec.get("PRECURSORTYPE"),
                     smiles=rec.get("SMILES"),
-                    inchi=rec.get("INCHIKEY"),
+                    inchikey=rec.get("INCHIKEY"),
                     formula=rec.get("FORMULA"),
                     retention_time=float(rec.get("RETENTIONTIME")),
                     ccs=float(rec.get("CCS")) if not rec.get("CCS") == "NA" else None,
@@ -184,7 +184,7 @@ class MSPdb:
                 outfile.write(f"PRECURSORMZ: {record.precursor_mz}" + "\n")
                 outfile.write(f"PRECURSORTYPE: {record.precursor_type}" + "\n")
                 outfile.write(f"SMILES: {record.smiles}" + "\n")
-                outfile.write(f"INCHIKEY: {record.inchi}" + "\n")
+                outfile.write(f"INCHIKEY: {record.inchikey}" + "\n")
                 outfile.write(f"FORMULA: {record.formula}" + "\n")
                 outfile.write(f"RETENTIONTIME: {record.retention_time}" + "\n")
                 if record.ccs:
