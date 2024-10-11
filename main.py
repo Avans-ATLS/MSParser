@@ -25,7 +25,7 @@ def add_13c_headlabel(records: list[Record]) -> list[Record]:
         formula.change_element_count('C', '-', 2)
         formula.change_element_count('C', '+', 2, isotope=13)
         record.formula = formula.to_string()
-        record.peaks = [(p[0] + 2.0671, p[1]) for p in record.peaks]
+        record.peaks = [(p[0] + 2.00671, p[1]) for p in record.peaks]
         new_records.append(record)
     
     return new_records
