@@ -130,14 +130,34 @@ def parse_search_words(file_path):
 
     return terms
 
+def blanco_vs_location(blanco_db, sample_db):
+    """compare the blanco database with the sample database
+
+    args:
+        blanco_db: MSPdb object with the blanco database
+        sample_db: MSPdb object with the sample database
+    """
+    blanco_vs_sample_dict = {}
+    for compound in blanco_db.records:
+        # loop over the sample database and compare precurzor mz (rounded to 2 decimals) and Retention Time (rounded to 2 decimals)
+        for sample_compound in sample_db.records:
+            
+
 ###### MAIN FUNCTION CODE AREA ######       
 # open the reference database and create the database object
-db = MSPdb()
-db.load_file('/home/daan/databases/stefano/MSMS-Public_all-neg-VS19.txt')
-db.summary()
 
-file_location = '/home/daan/databases/stefano/List.txt'
-list_of_searchterms = parse_search_words(file_location)
+
+# file_location = '/home/daan/databases/stefano/List.txt'
+# list_of_searchterms = parse_search_words(file_location)
+##################################################################################
+# Check if the blanco compounds are present in the sample database, based on the PRECURSORMZ and RT
+blanco_db = MSPdb()
+blanco_db.load_file('/home/daan/databases/femke_k/blancoVSlocation/Msp_BL_MQ_1.msp')
+
+sample_db = MSPdb()
+sample_db.load_file('/home/daan/databases/femke_k/blancoVSlocation/Msp_G01_09Jan25.msp')
+
+
 
 
 ##################################################################################
@@ -165,13 +185,13 @@ list_of_searchterms = parse_search_words(file_location)
 
 #TODO get the filters not hard coded
 
-#create a new database object for your filters
-filtered = MSPdb()
+# #create a new database object for your filters
+# filtered = MSPdb()
 
-for ontology_term in list_of_searchterms:
-    # append the records with these search terms into the filtered db
-    for record in db.filter_ontology(ontology_term):
-        filtered.records.append(record)
+# for ontology_term in list_of_searchterms:
+#     # append the records with these search terms into the filtered db
+#     for record in db.filter_ontology(ontology_term):
+#         filtered.records.append(record)
 
 # for record in db.filter_ontology("Acyloins"):
 #     filtered.records.append(record)
@@ -202,9 +222,9 @@ for ontology_term in list_of_searchterms:
 
 
 
-filtered.summary()
+# filtered.summary()
 
 # db.records.extend(filtered)
 # db.summary()
 
-filtered.write_database('/home/daan/databases/stefano/glycosides.msp')	
+# filtered.write_database('/home/daan/databases/stefano/glycosides.msp')	
