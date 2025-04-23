@@ -130,18 +130,112 @@ def parse_search_words(file_path):
 
     return terms
 
-def blanco_vs_location(blanco_db, sample_db):
-    """compare the blanco database with the sample database
-
-    args:
-        blanco_db: MSPdb object with the blanco database
-        sample_db: MSPdb object with the sample database
-    """
-    blanco_vs_sample_dict = {}
-    for compound in blanco_db.records:
-        # loop over the sample database and compare precurzor mz (rounded to 2 decimals) and Retention Time (rounded to 2 decimals)
-        for sample_compound in sample_db.records:
+#FEMKE_K_BLANCO_VS_SAMPLE
+def process_files(directory, blanco_pattern='_BL_'):
+    """Process files and create dictionaries with error handling.
+    function to use for a directory with both blanco and sample files"""
+    blanco_dict = {}
+    sample_dict = {}
+    
+    for filename in os.listdir(directory):
+        if not filename.endswith('.msp'):
+            continue
             
+        file_path = os.path.join(directory, filename)
+        try:
+            db = MSPdb()
+            db.load_file(file_path)
+            
+            if blanco_pattern in filename:
+                blanco_dict[filename] = db
+            else:
+                sample_dict[filename] = db
+                
+        except Exception as e:
+            print(f"Error processing {filename}: {e}")
+            continue
+    
+    return blanco_dict, sample_dict
+
+
+#FEMKE_K_BLANCO_VS_SAMPLE
+def count_occurrences(matches_dict):
+    """Count occurrences of sample compounds."""
+    counts = {}
+    for blanco_compound, sample_compounds in matches_dict.items():
+        for sample_compound in sample_compounds:
+            counts[sample_compound] = counts.get(sample_compound, 0) + 1
+    return counts
+
+#FEMKE_K_BLANCO_VS_SAMPLE
+def compare_databases(blanco_db, sample_db, rt_tolerance=0.5, mz_decimal_places=2):
+    """Compare databases and track hits per sample."""
+    matches = {}
+    blanco_occurrences = {}
+    
+    for blanco_compound in blanco_db.records:
+        if blanco_compound.n_peaks < 5:
+            continue
+            
+        blanco_mz = round(float(blanco_compound.precursor_mz), mz_decimal_places)
+        blanco_rt = float(blanco_compound.retention_time)
+        
+        matching_samples = []
+        for sample_compound in sample_db.records:
+            sample_mz = round(float(sample_compound.precursor_mz), mz_decimal_places)
+            sample_rt = float(sample_compound.retention_time)
+            
+            if (blanco_mz == sample_mz and 
+                abs(blanco_rt - sample_rt) <= rt_tolerance):
+                matching_samples.append(sample_compound.name)
+        
+        if matching_samples:
+            matches[blanco_compound.name] = matching_samples
+            blanco_occurrences[blanco_compound.name] = len(matching_samples)
+    
+    return matches, blanco_occurrences
+
+
+#FEMKE_K_BLANCO_VS_SAMPLE
+def write_results(blanco_dict, sample_dict, output_file):
+    """Write results to file with total hit tracking."""
+    with open(output_file, 'w') as f:
+        f.write("Blanco compound hits across all samples\n")
+        f.write("--------------------------------------------------\n")
+        
+        total_occurrences = 0
+        blanco_occurrences = {}
+        sample_files = list(sample_dict.keys())
+        
+        for blanco_filename, blanco_db in blanco_dict.items():
+            for sample_filename, sample_db in sample_dict.items():
+                matches, blanco_hits = compare_databases(blanco_db, sample_db)
+                blanco_occurrences.update(blanco_hits)
+                total_occurrences += sum(blanco_hits.values())
+                
+                for blanco_compound, sample_compounds in matches.items():
+                    # Format line with total hits and sample list
+                    formatted_line = (
+                        f'{blanco_compound} has {len(sample_compounds)} hit(s) '
+                        f'in {"|".join(sample_files)}'
+                    )
+                    f.write(f"{formatted_line}\n")
+        
+        # Add summary statistics
+        f.write("\nSummary Statistics:\n")
+        f.write("------------------\n")
+        for blanco, count in sorted(blanco_occurrences.items(), 
+                                  key=lambda x: x[1], 
+                                  reverse=True):
+            f.write(f"{blanco}: {count} hits across all samples\n")
+        
+        print(f"Total occurrences across all samples: {total_occurrences}")
+        print("\nSummary Statistics:")
+        for blanco, count in sorted(blanco_occurrences.items(), 
+                                  key=lambda x: x[1], 
+                                  reverse=True):
+            print(f"{blanco}: {count} hits")
+
 
 ###### MAIN FUNCTION CODE AREA ######       
 # open the reference database and create the database object
@@ -150,14 +244,24 @@ def blanco_vs_location(blanco_db, sample_db):
 # file_location = '/home/daan/databases/stefano/List.txt'
 # list_of_searchterms = parse_search_words(file_location)
 ##################################################################################
-# Check if the blanco compounds are present in the sample database, based on the PRECURSORMZ and RT
-blanco_db = MSPdb()
-blanco_db.load_file('/home/daan/databases/femke_k/blancoVSlocation/Msp_BL_MQ_1.msp')
+#FEMKE_K_BLANCO_VS_SAMPLE
+#Compare femke's blanco databases with their sample databases
+blanco_files, sample_files = process_files('/home/daan/databases/femke_k/blancoVSlocation/')
 
-sample_db = MSPdb()
-sample_db.load_file('/home/daan/databases/femke_k/blancoVSlocation/Msp_G01_09Jan25.msp')
+write_results(blanco_files, sample_files, 
+             '/home/daan/databases/femke_k/blancoVSlocation/2025APR23_blancoVsample_compounds.txt')
 
+###################################################################################
 
+# for sample_name, counts in sample_occurence_counts.items():
+#     print(f"{sample_name}: {counts} occurences")
+
+# blanco_comparisons = blancohits_in_samples(blanco_db, sample_db, rt_tolerance=0.5, mz_decimal_places=2)
+
+# for blanco_compound, sample_compounds in blanco_comparisons.items():
+#     print(f"Blanco compound: {blanco_compound}")
+#     print(f"Sample compounds: {', '.join(sample_compounds)}")
+#     print("")
 
 
 ##################################################################################
