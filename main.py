@@ -248,8 +248,26 @@ def write_results(blanco_dict, sample_dict, output_file):
 #Compare femke's blanco databases with their sample databases
 blanco_files, sample_files = process_files('/home/daan/databases/femke_k/blancoVSlocation/')
 
-write_results(blanco_files, sample_files, 
-             '/home/daan/databases/femke_k/blancoVSlocation/2025APR23_blancoVsample_compounds.txt')
+for sample_filename, sample_db in sample_files.items():
+    # create a filtered_db object for storage of the filtered records
+    filtered_db = MSPdb()
+    # loop over every compound in the sample database
+    for sample_compound in sample_db.records:
+        if sample_compound.n_peaks < 5:
+            continue
+        else:
+            # rename the compound to its mz and retention time
+            sample_compound.name = f"MZ={sample_compound.precursor_mz}|RT={sample_compound.retention_time}"
+            # empty the comment line
+            sample_compound.comment = ""
+            # append the sample compound to the filtered database
+            filtered_db.records.append(sample_compound)
+    # write the filtered database to a file
+    filtered_db.write_database(f"/home/daan/databases/femke_k/blancoVSlocation/name_comment_cleaned_files/2025APR24_{sample_filename}_NameCommentClean.msp")
+
+
+# write_results(blanco_files, sample_files, 
+#              '/home/daan/databases/femke_k/blancoVSlocation/2025APR23_blancoVsample_compounds.txt')
 
 ###################################################################################
 
