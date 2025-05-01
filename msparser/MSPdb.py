@@ -109,8 +109,10 @@ class MSPdb:
         --------------------------------
         Number of precursor types: {len(set([record.precursor_type for record in self.records]))}
         {', '.join(set([record.precursor_type for record in self.records]))}
-        --------------------------------"""
-        )
+        --------------------------------
+        Number of unique ontologies: {len(set([record.ontology for record in self.records]))}
+        {', '.join(set([record.ontology for record in self.records]))}
+        --------------------------------""")
 
     def filter_class(
         self, compound_class: str, records: List[Record] = None
@@ -143,7 +145,25 @@ class MSPdb:
         for record in self.records if not records else records:
             if record.ionmode == ionmode:
                 yield record
+
+    def unique_ontologies(self, records: list[Record]) -> dict[str, int]:
+        """return a dictionary of all unique ontologies and their counts found in the database.
     
+        Args:
+            records: list of record objects from the .msp database file
+
+        Returns:
+            ontology_counts: dictionary of unique ontologies and their counts
+        """ 
+        ontology_counts = {}
+        for record in self.records:  
+            if not record.ontology in ontology_counts.keys():
+                ontology_counts[record.ontology] = 1
+            else:
+                ontology_counts[record.ontology] += 1
+        
+        return ontology_counts  
+
     def filter_ontology(
         self, ontology: str, records: List[Record] = None
     ) -> Generator[Record, None, None]:

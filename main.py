@@ -2,11 +2,18 @@ import os
 import argparse
 from sys import argv
 import pandas as pd
+from rdkit import Chem
 
-# from rdkit import Chem
-
+# import necessary classes
 from msparser.MSPdb import MSPdb, Record
 from msparser.parsers import Formula
+
+########## possible future functions to be implemented in MSParser ##########
+# blanco vs sample comparison of msp files
+# filter msp database by using a file with search terms and filtered database name
+# get the unique ontologies/precurzorMZ/etc.  with their counts 
+
+
 
 ### add custom functions below here ###
 
@@ -32,18 +39,6 @@ def add_13c_headlabel(records: list[Record]) -> list[Record]:
     
     return new_records
 
-
-def unique_ontologies(records: list[Record]):
-    """return a list of all unique ontologies found in a .msp database
-    
-    records: list of record objects from the .msp database file
-    """
-    individual_ontologies = []
-    for record in records:
-        if not record.ontology in individual_ontologies:
-            individual_ontologies.append(record.ontology)
-
-    return individual_ontologies
 
 def update_comment_samplelocations(peak_sample_file, records: list[Record]):
     """update the comment section with sample locations
