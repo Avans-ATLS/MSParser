@@ -109,12 +109,12 @@ class MSPdb:
         --------------------------------
         Number of precursor types: {len(set([record.precursor_type for record in self.records]))}
         {', '.join(set([record.precursor_type for record in self.records]))}
-        --------------------------------
-        Number of unique ontologies: {len(set([record.ontology for record in self.records]))}
-        {', '.join(set([record.ontology for record in self.records]))}
-        --------------------------------""")
+        -------------------------------- 
+        Number of unique ontologies: {len(set([record.ontology for record in self.records if record.ontology.strip()]))}
+        {', '.join(set([record.ontology for record in self.records if record.ontology.strip()]))} 
+        --------------------------------\n""")
 
-    def filter_class(
+    def filter_class( 
         self, compound_class: str, records: List[Record] = None
     ) -> Generator[Record, None, None]:
         """Filter compound class by exact match. Matching records are yielded.
@@ -211,6 +211,26 @@ class MSPdb:
         for record in self.records if not records else records:
             if record.precursor_type == precursor_type:
                 yield record
+
+    def clean_peaks_on_intensity(
+        self, records: List[Record] = None, threshold: float = 0.01
+    ) -> Generator[Record, None, None]:
+        """Filter peaks on intensity. Peaks below the percentage threshold are removed.
+
+        Args:
+            records (List[Record], optional): A list of records to filter. If no list is supplied, the internal database will be filtered and returned. Defaults to None.
+            threshold (float, optional): Intensity threshold relative to the highest peak. Defaults to 0.01 = 1%
+
+        Yields:
+            Generator[Record, None, None]: Records passing the filter.
+        """
+        for record in self.records if not records else records:
+            if record.peaks:
+                max_intensity = max([peak[1] for peak in record.peaks])
+                record.peaks = [peak for peak in record.peaks if peak[1] >= max_intensity * threshold]
+                record.n_peaks = len(record.peaks)
+                yield record
+
 
     def write_database(self, path: str) -> None:
         with open(path, "w") as outfile:

@@ -12,10 +12,23 @@ from msparser.parsers import Formula
 # blanco vs sample comparison of msp files
 # filter msp database by using a file with search terms and filtered database name
 # get the unique ontologies/precurzorMZ/etc.  with their counts 
-
+# filter the MS2 spectra by only keeping the peaks haveng at least one percent of the highest intensity in the spectrum
 
 
 ### add custom functions below here ###
+
+def argumement_parser():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="MSParser: A tool for parsing and filtering msp files.")
+    parser.add_argument('-f', '--file', type=str, required=True, help='Path to the msp file to be processed.')
+    parser.add_argument('-o', '--output', type=str, required=True, help='Output file name with full path.')
+    parser.add_argument('-F', '--filter', type=str, required=False, help='Element to filter on (options; name, ontology, precurzor_mz, ionmode, retention_time, formula, smiles, inchikey, comment, collision_energy, number of peaks or peak intensity).')
+    parser.add_argument('-t', '--threshold', type=float, required=False, help='Threshold value required if the filtering is selected.')
+    parser.add_argument('-s', '--searchterm', type=str, required=False, help='searchterm used in te filtering.')
+    parser.add_argument('-r', '--remove', type=str, required=False, help='Element to remove from the database (options; name, ontology, precurzor_mz, ionmode, retention_time, formula, smiles, inchikey, comment, collision_energy, number_of_peaks or peak_intensity).')
+    
+    return parser.parse_args()
+
 
 def add_13c_headlabel(records: list[Record]) -> list[Record]:
     """Add a choline group to all records in a list
@@ -233,7 +246,22 @@ def write_results(blanco_dict, sample_dict, output_file):
 
 
 ###### MAIN FUNCTION CODE AREA ######       
-# open the reference database and create the database object
+
+args = argumement_parser()
+# load the database
+db = MSPdb()
+db.load_file(args.file)
+
+print(f"The original database summary:")
+# db.summary()
+
+filtered_db = MSPdb()
+filtered_db.records = [x for x in db.clean_peaks_on_intensity(threshold=args.threshold)]
+print(f"The database summary after filtering on peak intensity: \n")
+filtered_db.summary()
+
+filtered_db.write_database(args.output)
+
 
 
 # file_location = '/home/daan/databases/stefano/List.txt'
@@ -241,28 +269,34 @@ def write_results(blanco_dict, sample_dict, output_file):
 ##################################################################################
 #FEMKE_K_BLANCO_VS_SAMPLE
 #Compare femke's blanco databases with their sample databases
-blanco_files, sample_files = process_files('/home/daan/databases/femke_k/blancoVSlocation/')
+# blanco_files, sample_files = process_files('/home/daan/databases/femke_k/blancoVSlocation/')
 
-for sample_filename, sample_db in sample_files.items():
-    # create a filtered_db object for storage of the filtered records
-    filtered_db = MSPdb()
-    # loop over every compound in the sample database
-    for sample_compound in sample_db.records:
-        if sample_compound.n_peaks < 5:
-            continue
-        else:
-            # rename the compound to its mz and retention time
-            sample_compound.name = f"MZ={sample_compound.precursor_mz}|RT={sample_compound.retention_time}"
-            # empty the comment line
-            sample_compound.comment = ""
-            # append the sample compound to the filtered database
-            filtered_db.records.append(sample_compound)
-    # write the filtered database to a file
-    filtered_db.write_database(f"/home/daan/databases/femke_k/blancoVSlocation/name_comment_cleaned_files/2025APR24_{sample_filename}_NameCommentClean.msp")
+# for sample_filename, sample_db in sample_files.items():
+#     # create a filtered_db object for storage of the filtered records
+#     filtered_db = MSPdb()
+#     # loop over every compound in the sample database
+#     for sample_compound in sample_db.records:
+#         if sample_compound.n_peaks < 5:
+#             continue
+#         else:
+#             # rename the compound to its mz and retention time
+#             sample_compound.name = f"MZ={sample_compound.precursor_mz}|RT={sample_compound.retention_time}"
+#             # empty the comment line
+#             sample_compound.comment = ""
+#             # append the sample compound to the filtered database
+#             filtered_db.records.append(sample_compound)
+#     # write the filtered database to a file
+#     filtered_db.write_database(f"/home/daan/databases/femke_k/blancoVSlocation/name_comment_cleaned_files/2025APR24_{sample_filename}_NameCommentClean.msp")
 
 
 # write_results(blanco_files, sample_files, 
 #              '/home/daan/databases/femke_k/blancoVSlocation/2025APR23_blancoVsample_compounds.txt')
+
+###################################################################################
+
+
+
+
 
 ###################################################################################
 
