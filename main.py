@@ -252,14 +252,22 @@ args = argumement_parser()
 db = MSPdb()
 db.load_file(args.file)
 
-print(f"The original database summary:")
-# db.summary()
-
+# open a filtered db class
 filtered_db = MSPdb()
-filtered_db.records = [x for x in db.clean_peaks_on_intensity(threshold=args.threshold)]
+
+# filter argument validation and execution
+if args.filter == 'peak_intensity':
+    if args.threshold is None:
+        raise ValueError("Threshold value is required for peak intensity filtering.")
+
+    else:
+        filtered_db.records = [x for x in db.clean_peaks_on_intensity(threshold=args.threshold)]
+
+# print a summary of the filtered database
 print(f"The database summary after filtering on peak intensity: \n")
 filtered_db.summary()
 
+#write filtered database to output file
 filtered_db.write_database(args.output)
 
 
