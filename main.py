@@ -21,7 +21,7 @@ def argumement_parser():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="MSParser: A tool for parsing and filtering msp files.")
     parser.add_argument('-f', '--file', type=str, required=True, help='Path to the msp file to be processed.')
-    parser.add_argument('-o', '--output', type=str, required=True, help='Output file name with full path.')
+    parser.add_argument('-o', '--output', type=str, required=False, help='Output file name with full path.')
     parser.add_argument('-F', '--filter', type=str, required=False, help='Element to filter on (options; name, ontology, precurzor_mz, ionmode, retention_time, formula, smiles, inchikey, comment, collision_energy, number of peaks or peak intensity).')
     parser.add_argument('-t', '--threshold', type=float, required=False, help='Threshold value required if the filtering is selected.')
     parser.add_argument('-s', '--searchterm', type=str, required=False, help='searchterm used in te filtering.')
@@ -252,23 +252,39 @@ args = argumement_parser()
 db = MSPdb()
 db.load_file(args.file)
 
-# open a filtered db class
-filtered_db = MSPdb()
+# print an opening statement and a summary of the database
+print(f"The database summary before any of the filtering steps: \n")
+#print the name of the database file
+print(f"Database file: {args.file}\n")
+# print the summary of the database
+db.summary()
 
-# filter argument validation and execution
-if args.filter == 'peak_intensity':
-    if args.threshold is None:
-        raise ValueError("Threshold value is required for peak intensity filtering.")
+# determine the amount of records with missing inchikeys, smiles or formula
+missing_inchikey = db.number_of_unknown_identifiers('InChIKey')
+missing_smiles = db.number_of_unknown_identifiers('SMILES')
+missing_formula = db.number_of_unknown_identifiers('FORMULA')
 
-    else:
-        filtered_db.records = [x for x in db.clean_peaks_on_intensity(threshold=args.threshold)]
+print(f"Number of records with missing InChIKey: {missing_inchikey}")
+print(f"Number of records with missing SMILES: {missing_smiles}")
+print(f"Number of records with missing Formula: {missing_formula}\n")
 
-# print a summary of the filtered database
-print(f"The database summary after filtering on peak intensity: \n")
-filtered_db.summary()
+# # open a filtered db class
+# filtered_db = MSPdb()
 
-#write filtered database to output file
-filtered_db.write_database(args.output)
+# # filter argument validation and execution
+# if args.filter == 'peak_intensity':
+#     if args.threshold is None:
+#         raise ValueError("Threshold value is required for peak intensity filtering.")
+
+#     else:
+#         filtered_db.records = [x for x in db.clean_peaks_on_intensity(threshold=args.threshold)]
+
+# # print a summary of the filtered database
+# print(f"The database summary after filtering on peak intensity: \n")
+# filtered_db.summary()
+
+# #write filtered database to output file
+# filtered_db.write_database(args.output)
 
 
 

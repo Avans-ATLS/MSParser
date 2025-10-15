@@ -232,6 +232,26 @@ class MSPdb:
                 yield record
 
 
+    def number_of_unknown_identifiers(self, identifier: str) -> Tuple[int, list]:
+        """Count the number of records with unknown identifiers (NA or empty string)
+        and collect their names.
+
+        Args:
+            identifier (str): The identifier to check (e.g., 'SMILES', 'INCHIKEY', 'FORMULA').
+
+        Returns:
+            Tuple[int, list]: The count of records with unknown identifiers and a list of their names.
+        """
+        count = 0
+        unknown_names = []
+        for record in self.records:
+            if getattr(record, identifier.lower()) in [None, "", "NA"]:
+                count += 1
+                unknown_names.append(record.name)
+        return count, unknown_names
+
+        return count
+
     def write_database(self, path: str) -> None:
         with open(path, "w") as outfile:
             for record in self.records:
