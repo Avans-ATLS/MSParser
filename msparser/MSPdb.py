@@ -213,23 +213,31 @@ class MSPdb:
                 yield record
 
     def clean_peaks_on_intensity(
-        self, records: List[Record] = None, threshold: float = 0.01
+        self, 
+        records: List[Record] = None, 
+        threshold: float = 0.01,
+        absolute_min: int = None
     ) -> Generator[Record, None, None]:
         """Filter peaks on intensity. Peaks below the percentage threshold are removed.
 
         Args:
             records (List[Record], optional): A list of records to filter. If no list is supplied, the internal database will be filtered and returned. Defaults to None.
             threshold (float, optional): Intensity threshold relative to the highest peak. Defaults to 0.01 = 1%
+            absolute_min (int, optional): Absolute minimum intensity to keep a peak. Defaults to None
 
         Yields:
             Generator[Record, None, None]: Records passing the filter.
         """
         for record in self.records if not records else records:
             if record.peaks:
-                max_intensity = max([peak[1] for peak in record.peaks])
-                record.peaks = [peak for peak in record.peaks if peak[1] >= max_intensity * threshold]
+                # absolute filtering using threshold
+                if absolute_min is not None:
+                    record.peaks = [peak for peak in record.peaks if peak[1] >= absolute_min]
+                else: # relative filtering using threshold
+                    max_intensity = max([peak[1] for peak in record.peaks])
+                    record.peaks = [peak for peak in record.peaks if peak[1] >= max_intensity * threshold]
                 record.n_peaks = len(record.peaks)
-                yield record
+            yield record
 
 
     def number_of_unknown_identifiers(self, identifier: str) -> Tuple[int, list]:

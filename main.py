@@ -23,6 +23,7 @@ def argumement_parser():
     parser.add_argument('-f', '--file', type=str, required=True, help='Path to the msp file to be processed.')
     parser.add_argument('-o', '--output', type=str, required=False, help='Output file name with full path.')
     parser.add_argument('-F', '--filter', type=str, required=False, help='Element to filter on (options; name, ontology, precurzor_mz, ionmode, retention_time, formula, smiles, inchikey, comment, collision_energy, number of peaks or peak intensity).')
+    parser.add_argument('-T', '--filter_type', type=str, required=False, help='filtering type for peak intensity filtering (options; absolute or relative).')
     parser.add_argument('-t', '--threshold', type=float, required=False, help='Threshold value required if the filtering is selected.')
     parser.add_argument('-s', '--searchterm', type=str, required=False, help='searchterm used in te filtering.')
     parser.add_argument('-r', '--remove', type=str, required=False, help='Element to remove from the database (options; name, ontology, precurzor_mz, ionmode, retention_time, formula, smiles, inchikey, comment, collision_energy, number_of_peaks or peak_intensity).')
@@ -259,32 +260,28 @@ print(f"Database file: {args.file}\n")
 # print the summary of the database
 db.summary()
 
-# determine the amount of records with missing inchikeys, smiles or formula
-missing_inchikey = db.number_of_unknown_identifiers('InChIKey')
-missing_smiles = db.number_of_unknown_identifiers('SMILES')
-missing_formula = db.number_of_unknown_identifiers('FORMULA')
+# open a filtered db class
+filtered_db = MSPdb()
 
-print(f"Number of records with missing InChIKey: {missing_inchikey}")
-print(f"Number of records with missing SMILES: {missing_smiles}")
-print(f"Number of records with missing Formula: {missing_formula}\n")
+# filter argument validation and execution
+if args.filter == 'peak_intensity':
+    if args.threshold is None or args.threshold == 0:
+        raise ValueError("Threshold value is required for peak intensity filtering.")
+    # check if threshold is a valid number
+    elif args.threshold < 0:
+        raise ValueError("Threshold value must be a non-negative number.")
+    else:
+        if args.filter_type == 'absolute':
+            filtered_db.records = [x for x in db.clean_peaks_on_intensity(threshold=args.threshold, absolute_min=int(args.threshold))]
+        else:  # default to relative filtering
+            filtered_db.records = [x for x in db.clean_peaks_on_intensity(threshold=args.threshold, absolute_min=None)]
 
-# # open a filtered db class
-# filtered_db = MSPdb()
+        # print a summary of the filtered database
+        print(f"The database summary after filtering on peak intensity: \n")
+        filtered_db.summary()
 
-# # filter argument validation and execution
-# if args.filter == 'peak_intensity':
-#     if args.threshold is None:
-#         raise ValueError("Threshold value is required for peak intensity filtering.")
-
-#     else:
-#         filtered_db.records = [x for x in db.clean_peaks_on_intensity(threshold=args.threshold)]
-
-# # print a summary of the filtered database
-# print(f"The database summary after filtering on peak intensity: \n")
-# filtered_db.summary()
-
-# #write filtered database to output file
-# filtered_db.write_database(args.output)
+        #write filtered database to output file
+        filtered_db.write_database(args.output)
 
 
 
@@ -358,7 +355,7 @@ print(f"Number of records with missing Formula: {missing_formula}\n")
 
 ###### filter the ref database with your criteria ######
 
-#TODO get the filters not hard coded
+# TODO get the filters not hard coded
 
 # #create a new database object for your filters
 # filtered = MSPdb()
