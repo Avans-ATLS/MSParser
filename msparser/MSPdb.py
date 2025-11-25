@@ -17,6 +17,7 @@ class Record:
         retention_time: float = None,
         ccs: float = None,
         ionmode: str = None,
+        cas_number: str = None,
         comment: str = None,
         n_peaks: int = None,
         peaks: List[Tuple[float, int]] = None,
@@ -31,12 +32,30 @@ class Record:
         self.retention_time = retention_time
         self.ccs = ccs
         self.ionmode = ionmode
+        self.cas_number = cas_number
         self.comment = comment
         self.n_peaks = n_peaks
         self.peaks = peaks if peaks is not None else []
 
     def __str__(self):
-        return f"Record:\n{self.name}\n{self.precursor_mz}\n{self.precursor_type}\n{self.smiles}\n{self.inchikey}\n{self.formula}\n{self.ontology}\n{self.retention_time}\n{self.ccs}\n{self.ionmode}\n{self.compound_class}\n{self.comment}\n{self.n_peaks}\n{self.peaks}"
+        
+        return (
+            f"Record:\n"
+            f"Name: {self.name}\n"
+            f"Precursor m/z: {self.precursor_mz}\n"
+            f"Precursor type: {self.precursor_type}\n"
+            f"SMILES: {self.smiles}\n"
+            f"InChIKey: {self.inchikey}\n"
+            f"Formula: {self.formula}\n"
+            f"Ontology: {self.ontology}\n"
+            f"Retention time: {self.retention_time}\n"
+            f"CCS: {self.ccs}\n"
+            f"Ion mode: {self.ionmode}\n"
+            f"CAS#: {self.cas_number}\n"
+            f"Comment: {self.comment}\n"
+            f"Num Peaks: {self.n_peaks}\n"
+            f"Peaks: {self.peaks}"
+        )
 
 
 class MSPdb:
@@ -71,21 +90,23 @@ class MSPdb:
                 if "CCS" not in rec:  # some records do not have CCS
                     rec["CCS"] = "NA"
 
+            
             # create record from rec and peaks
             try:
                 record = Record(
-                    name=rec.get("NAME", ""),
-                    precursor_mz=float(rec.get("PRECURSORMZ", 0)),
-                    precursor_type=rec.get("PRECURSORTYPE", ""),
-                    smiles=rec.get("SMILES", ""),
-                    inchikey=rec.get("INCHIKEY", ""),
-                    formula=rec.get("FORMULA", ""),
-                    ontology=rec.get("ONTOLOGY", ""),
-                    retention_time=float(rec.get("RETENTIONTIME", 0)),
-                    ccs=float(rec.get("CCS")) if not rec.get("CCS") == "NA" else None,
-                    ionmode=rec.get("IONMODE"),
-                    comment=rec.get("COMMENT", ""),
-                    n_peaks=int(rec.get("Num Peaks", 0)),
+                    name=rec.get("NAME", "Unknown"),
+                    precursor_mz=rec.get("PRECURSORMZ"),
+                    precursor_type=rec.get("PRECURSORTYPE", "NA"),
+                    smiles=rec.get("SMILES", "NA"),
+                    inchikey=rec.get("INCHIKEY", "NA"),
+                    formula=rec.get("FORMULA", "NA"),
+                    ontology=rec.get("ONTOLOGY", "NA"),
+                    retention_time=rec.get("RETENTIONTIME", "NA"),
+                    ccs=rec.get("CCS", "NA"),
+                    ionmode=rec.get("IONMODE", "NA"),
+                    cas_number = rec.get("CAS#", "NA"),
+                    comment=rec.get("COMMENT", "NA"),
+                    n_peaks=rec.get("Num Peaks", 0),
                     peaks=peaks,
                 )
                 self.records.append(record)

@@ -251,6 +251,7 @@ def write_results(blanco_dict, sample_dict, output_file):
 args = argumement_parser()
 # load the database
 db = MSPdb()
+print("Loading database...")
 db.load_file(args.file)
 
 # print an opening statement and a summary of the database
